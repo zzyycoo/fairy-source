@@ -141,7 +141,7 @@ export default function Home({ onSelectService }: HomeProps) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <span className="text-xs font-semibold text-slate-500 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-slate-200/60 shadow-sm">2.1.00</span>
+          <span className="text-xs font-semibold text-slate-500 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-slate-200/60 shadow-sm">2.1.01</span>
         </motion.div>
       </nav>
 
