@@ -2,10 +2,10 @@ import { motion } from 'framer-motion';
 import { Bed, Car, Bus, Flag, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const services = [
-  { id: 'room', title: 'Room Booking', icon: Bed, color: 'text-stripe-purple', bg: 'bg-stripe-purple/10', desc: 'Professional hotel reservation' },
-  { id: 'car', title: 'Car Rental', icon: Car, color: 'text-blue-500', bg: 'bg-blue-500/10', desc: 'Reliable transport services' },
-  { id: 'golf', title: 'Golf Courses', icon: Flag, color: 'text-green-600', bg: 'bg-green-600/10', desc: 'Premium golf course access' },
-  { id: 'bus', title: 'Bus Service', icon: Bus, color: 'text-orange-500', bg: 'bg-orange-500/10', desc: 'Comfortable group transfers' },
+  { id: 'room', title: 'Room', icon: Bed, color: 'text-stripe-purple', bg: 'bg-stripe-purple/10', desc: 'Hotel booking' },
+  { id: 'car', title: 'Car', icon: Car, color: 'text-blue-500', bg: 'bg-blue-500/10', desc: 'Rental service' },
+  { id: 'golf', title: 'Golf', icon: Flag, color: 'text-green-600', bg: 'bg-green-600/10', desc: 'Course access' },
+  { id: 'bus', title: 'Bus', icon: Bus, color: 'text-orange-500', bg: 'bg-orange-500/10', desc: 'Group transfer' },
 ];
 
 interface HomeProps {
@@ -14,56 +14,83 @@ interface HomeProps {
 
 export default function Home({ onSelectService }: HomeProps) {
   return (
-    <div className="min-h-screen bg-stripe-bg flex flex-col relative overflow-hidden font-sans">
-      <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-stripe-purple/10 rounded-full blur-3xl opacity-60" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-stripe-blue/10 rounded-full blur-3xl opacity-60" />
-
-      <nav className="w-full p-6 flex justify-between items-center relative z-10 backdrop-blur-sm bg-stripe-bg/50">
+    <div className="h-screen bg-stripe-bg flex flex-col relative overflow-hidden font-sans">
+      {/* 背景装饰 - 缩小 */}
+      <div className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] bg-stripe-purple/8 rounded-full blur-3xl opacity-50" />
+      
+      {/* 顶部导航 - 紧凑 */}
+      <nav className="w-full px-6 py-4 flex justify-between items-center shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-stripe-purple rounded-lg flex items-center justify-center text-white font-bold">F</div>
-          <span className="font-bold text-stripe-text text-xl">Fairy</span>
+          <div className="w-7 h-7 bg-stripe-purple rounded-lg flex items-center justify-center text-white font-bold text-sm">F</div>
+          <span className="font-bold text-stripe-text text-lg">Fairy</span>
         </div>
-        <div className="text-xs font-medium text-stripe-gray bg-white px-3 py-1 rounded-full border border-stripe-lightGray shadow-sm">v2.1</div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-medium text-stripe-gray bg-white px-2.5 py-1 rounded-full border border-stripe-lightGray">v2.1</span>
+        </div>
       </nav>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 relative z-10 max-w-7xl mx-auto w-full">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
-          <motion.div className="inline-flex items-center gap-2 bg-white px-4 py-1.5 rounded-full text-xs font-semibold text-stripe-purple shadow-sm mb-6 border border-stripe-purple/20">
-            <ShieldCheck size={14} />
-            <span>Trusted by professionals</span>
+      {/* 主要内容 - 垂直居中紧凑布局 */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-4">
+        {/* 标题区 - 紧凑 */}
+        <motion.div 
+          initial={{ opacity: 0, y: -8 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          className="text-center mb-8"
+        >
+          <motion.div className="inline-flex items-center gap-1.5 bg-white px-3 py-1 rounded-full text-xs font-medium text-stripe-purple mb-4 border border-stripe-purple/20">
+            <ShieldCheck size={12} />
+            <span>Professional booking tool</span>
           </motion.div>
-          <h1 className="text-5xl md:text-6xl font-bold text-stripe-text mb-6 tracking-tight">
-            One-stop travel<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-stripe-purple to-stripe-blue">service management</span>
+          <h1 className="text-3xl md:text-4xl font-bold text-stripe-text mb-2 tracking-tight">
+            Travel <span className="text-transparent bg-clip-text bg-gradient-to-r from-stripe-purple to-stripe-blue">Booking Hub</span>
           </h1>
-          <p className="text-stripe-gray text-lg max-w-2xl mx-auto">
-            Simple, fast, reliable. Professional booking tool for Vietnam's premium travel experiences.
+          <p className="text-stripe-gray text-sm">
+            Vietnam premium travel services — simple & fast
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        {/* 服务卡片 - 单行紧凑网格 */}
+        <div className="flex flex-wrap justify-center gap-3 w-full max-w-4xl">
           {services.map((s) => (
-            <motion.div
+            <motion.button
               key={s.id}
-              whileHover={{ y: -8 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => onSelectService(s.id)}
-              className="group bg-white p-8 rounded-2xl shadow-stripe hover:shadow-stripe-hover cursor-pointer border border-gray-100 flex flex-col h-full"
+              className="group bg-white px-5 py-4 rounded-xl shadow-sm hover:shadow-md border border-gray-100 flex items-center gap-3 min-w-[140px] transition-all"
             >
-              <div className={`mb-6 w-14 h-14 rounded-xl flex items-center justify-center ${s.bg} ${s.color} group-hover:bg-stripe-purple group-hover:text-white`}>
-                <s.icon size={28} />
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${s.bg} ${s.color} group-hover:bg-stripe-purple group-hover:text-white shrink-0 transition-colors`}>
+                <s.icon size={20} />
               </div>
-              <h3 className="text-xl font-bold text-stripe-text mb-2">{s.title}</h3>
-              <p className="text-stripe-gray text-sm mb-8 flex-1">{s.desc}</p>
-              <div className="flex items-center text-stripe-purple font-semibold text-sm group-hover:translate-x-2 transition-transform">
-                <span>Start booking</span>
-                <ArrowRight size={16} className="ml-2" />
+              <div className="text-left">
+                <h3 className="text-sm font-bold text-stripe-text">{s.title}</h3>
+                <p className="text-xs text-stripe-gray">{s.desc}</p>
               </div>
-            </motion.div>
+              <ArrowRight size={14} className="ml-auto text-stripe-purple opacity-0 group-hover:opacity-100 transition-opacity" />
+            </motion.button>
           ))}
         </div>
+
+        {/* 快捷操作区 */}
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ delay: 0.2 }}
+          className="mt-8 flex items-center gap-4 text-xs text-stripe-gray"
+        >
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+            System online
+          </span>
+          <span className="text-gray-300">|</span>
+          <button className="hover:text-stripe-purple transition-colors">View records</button>
+          <span className="text-gray-300">|</span>
+          <button className="hover:text-stripe-purple transition-colors">Settings</button>
+        </motion.div>
       </main>
 
-      <footer className="w-full py-8 text-center text-stripe-gray text-sm relative z-10">
+      {/* 底部 - 极简 */}
+      <footer className="w-full py-4 text-center text-stripe-gray text-xs shrink-0">
         <p>© 2026 Fairy Booking System</p>
       </footer>
     </div>
