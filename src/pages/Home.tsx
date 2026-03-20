@@ -48,22 +48,10 @@ const getTodayQuote = () => {
   return movieQuotes[dayOfYear % movieQuotes.length];
 };
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: "spring", stiffness: 300, damping: 24 }
-  }
+// 检测是否为移动设备
+const isMobile = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 };
 
 interface HomeProps {
@@ -72,49 +60,34 @@ interface HomeProps {
 
 export default function Home({ onSelectService }: HomeProps) {
   const todayQuote = getTodayQuote();
+  const mobile = typeof window !== 'undefined' ? isMobile() : false;
 
   return (
     <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex flex-col relative overflow-hidden font-sans">
-      {/* 动态流动背景 */}
+      {/* 静态背景 - 移动端优化 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* 主光球 - 缓慢移动 */}
-        <motion.div 
-          className="absolute w-[600px] h-[600px] rounded-full opacity-40"
-          style={{
-            background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-          }}
-          animate={{
-            x: ['-20%', '10%', '-20%'],
-            y: ['-10%', '20%', '-10%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        {/* 次光球 */}
-        <motion.div 
-          className="absolute right-0 bottom-0 w-[500px] h-[500px] rounded-full opacity-30"
-          style={{
-            background: 'radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-          }}
-          animate={{
-            x: ['10%', '-20%', '10%'],
-            y: ['10%', '-10%', '10%'],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2
-          }}
-        />
-        {/* 装饰性网格 */}
+        {/* 桌面端：动态光球 / 移动端：静态渐变 */}
         <div 
-          className="absolute inset-0 opacity-[0.015]"
+          className="absolute w-[500px] h-[500px] rounded-full opacity-30 md:opacity-40"
+          style={{
+            background: 'radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)',
+            filter: mobile ? 'blur(100px)' : 'blur(80px)',
+            top: '-10%',
+            left: '-5%',
+          }}
+        />
+        <div 
+          className="absolute w-[400px] h-[400px] rounded-full opacity-20 md:opacity-30"
+          style={{
+            background: 'radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%)',
+            filter: mobile ? 'blur(100px)' : 'blur(60px)',
+            bottom: '-5%',
+            right: '-5%',
+          }}
+        />
+        {/* 移动端隐藏网格纹理 */}
+        <div 
+          className="hidden md:block absolute inset-0 opacity-[0.015]"
           style={{
             backgroundImage: `linear-gradient(rgba(99,91,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,91,255,0.5) 1px, transparent 1px)`,
             backgroundSize: '60px 60px'
@@ -122,125 +95,76 @@ export default function Home({ onSelectService }: HomeProps) {
         />
       </div>
 
-      {/* 顶部导航 - 玻璃态 */}
-      <nav className="w-full px-6 py-4 flex justify-between items-center shrink-0 relative z-10">
-        <motion.div 
-          className="flex items-center gap-2.5"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-violet-500/25">
-            <Sparkles size={16} />
+      {/* 顶部导航 */}
+      <nav className="w-full px-4 md:px-6 py-3 md:py-4 flex justify-between items-center shrink-0 relative z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+            <Sparkles size={14} className="md:w-4 md:h-4" />
           </div>
-          <span className="font-bold text-slate-800 text-lg tracking-tight">Fairy</span>
-        </motion.div>
-        <motion.div 
-          className="flex items-center gap-3"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="text-xs font-semibold text-slate-500 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-slate-200/60 shadow-sm">2.1.01</span>
-        </motion.div>
+          <span className="font-bold text-slate-800 text-base md:text-lg">Fairy</span>
+        </div>
+        <span className="text-xs font-semibold text-slate-500 bg-white/80 px-2.5 py-1 rounded-full border border-slate-200/60 shadow-sm">2.1.02</span>
       </nav>
 
       {/* 主要内容 */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 relative z-10 -mt-4 md:-mt-0">
         {/* 标题区 */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-10"
-        >
-          <motion.div 
-            className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-medium text-violet-600 mb-5 border border-violet-200/50 shadow-sm"
-            whileHover={{ scale: 1.02 }}
-          >
-            <ShieldCheck size={13} className="text-violet-500" />
+        <div className="text-center mb-6 md:mb-10">
+          <div className="inline-flex items-center gap-1.5 bg-white/70 px-3 py-1 rounded-full text-xs font-medium text-violet-600 mb-3 md:mb-5 border border-violet-200/50 shadow-sm">
+            <ShieldCheck size={12} />
             <span>Simple email generator</span>
-          </motion.div>
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-3 tracking-tight">
-            A KANG <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600">TOOLS</span>
+          </div>
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-2 md:mb-3 tracking-tight">
+            A KANG <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-blue-600">TOOLS</span>
           </h1>
-          <motion.p 
-            className="text-slate-500 text-sm italic"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            "{todayQuote.text}" <span className="text-xs opacity-50 not-italic ml-1">— {todayQuote.movie}</span>
-          </motion.p>
-        </motion.div>
+          <p className="text-slate-500 text-xs md:text-sm italic px-2">
+            "{todayQuote.text}" <span className="opacity-50 not-italic ml-1">— {todayQuote.movie}</span>
+          </p>
+        </div>
 
-        {/* 服务卡片 - 玻璃态 + Staggered 动画 */}
-        <motion.div 
-          className="flex flex-wrap justify-center gap-4 w-full max-w-4xl"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {services.map((s) => (
+        {/* 服务卡片 - 移动端：2列网格 / 桌面端：横向排列 */}
+        <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-2.5 md:gap-4 w-full max-w-4xl px-2">
+          {services.map((s, index) => (
             <motion.button
               key={s.id}
-              variants={itemVariants}
-              whileHover={{ 
-                scale: 1.03, 
-                y: -4,
-                transition: { type: "spring", stiffness: 400, damping: 20 }
-              }}
-              whileTap={{ scale: 0.98 }}
+              initial={mobile ? { opacity: 1 } : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={mobile ? {} : { delay: index * 0.08, duration: 0.4 }}
+              whileHover={mobile ? {} : { scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => onSelectService(s.id)}
-              className="group relative bg-white/60 backdrop-blur-xl px-6 py-5 rounded-2xl border border-white/60 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-violet-500/10 hover:border-violet-200/60 flex items-center gap-4 min-w-[160px] transition-all duration-300 overflow-hidden"
+              className="group bg-white/80 md:bg-white/60 backdrop-blur-sm md:backdrop-blur-xl p-3 md:px-6 md:py-5 rounded-xl md:rounded-2xl border border-white/80 md:border-white/60 shadow-md md:shadow-lg shadow-slate-200/40 hover:shadow-lg md:hover:shadow-xl flex items-center gap-2.5 md:gap-4 md:min-w-[160px] transition-all active:scale-95"
             >
-              {/* 悬停时的背景光效 */}
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 via-violet-500/0 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              <div className={`relative w-11 h-11 rounded-xl flex items-center justify-center ${s.bg} ${s.color} group-hover:bg-gradient-to-br group-hover:from-violet-500 group-hover:to-indigo-600 group-hover:text-white shrink-0 transition-all duration-300 shadow-sm`}>
-                <motion.div
-                  whileHover={{ rotate: 12 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <s.icon size={22} />
-                </motion.div>
+              <div className={`w-9 h-9 md:w-11 md:h-11 rounded-lg flex items-center justify-center ${s.bg} ${s.color} group-hover:bg-gradient-to-br group-hover:from-violet-500 group-hover:to-indigo-600 group-hover:text-white shrink-0 transition-colors shadow-sm`}>
+                <s.icon size={18} className="md:w-[22px] md:h-[22px]" />
               </div>
-              <div className="relative text-left">
-                <h3 className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">{s.title}</h3>
-                <p className="text-xs text-slate-500 group-hover:text-slate-600 transition-colors">{s.desc}</p>
+              <div className="text-left min-w-0">
+                <h3 className="text-xs md:text-sm font-bold text-slate-800 truncate">{s.title}</h3>
+                <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">{s.desc}</p>
               </div>
-              <ArrowRight size={16} className="relative ml-auto text-slate-400 group-hover:text-violet-500 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
+              <ArrowRight size={14} className="ml-auto text-slate-300 group-hover:text-violet-500 hidden md:block opacity-0 group-hover:opacity-100 transition-all" />
             </motion.button>
           ))}
-        </motion.div>
+        </div>
 
-        {/* 快捷操作区 - 玻璃态 */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="mt-10 flex items-center gap-4 text-xs"
-        >
-          <span className="flex items-center gap-2 bg-white/50 backdrop-blur px-3 py-1.5 rounded-full border border-white/60 text-slate-600">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            System online
+        {/* 快捷操作区 */}
+        <div className="mt-6 md:mt-10 flex items-center gap-3 md:gap-4 text-xs">
+          <span className="flex items-center gap-1.5 bg-white/60 px-2.5 py-1 rounded-full border border-white/60 text-slate-600">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="hidden md:inline">System online</span>
+            <span className="md:hidden">Online</span>
           </span>
-          <span className="text-slate-300">|</span>
-          <button className="text-slate-500 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-white/50">View records</button>
-          <span className="text-slate-300">|</span>
-          <button className="text-slate-500 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-white/50">Settings</button>
-        </motion.div>
+          <span className="text-slate-300 hidden md:inline">|</span>
+          <button className="text-slate-500 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-white/50 hidden md:block">View records</button>
+          <span className="text-slate-300 hidden md:inline">|</span>
+          <button className="text-slate-500 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-white/50 hidden md:block">Settings</button>
+        </div>
       </main>
 
       {/* 底部 */}
-      <motion.footer 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="w-full py-5 text-center text-slate-400 text-xs relative z-10"
-      >
-        <p>© 2026 Fairy Booking System</p>
-      </motion.footer>
+      <footer className="w-full py-3 md:py-5 text-center text-slate-400 text-xs relative z-10">
+        <p>© 2026 Fairy Booking</p>
+      </footer>
     </div>
   );
 }
