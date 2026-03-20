@@ -69,7 +69,7 @@ export default function Home({ onSelectService }: HomeProps) {
           <span className="font-bold text-stripe-text text-lg">Fairy</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs font-medium text-stripe-gray bg-white px-2.5 py-1 rounded-full border border-stripe-lightGray">v2.2</span>
+          <span className="text-xs font-medium text-stripe-gray bg-white px-2.5 py-1 rounded-full border border-stripe-lightGray">2.1.00</span>
         </div>
       </nav>
 
