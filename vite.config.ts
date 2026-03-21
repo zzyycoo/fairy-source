@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/fairy/',
+  base: './',
   build: {
     chunkSizeWarningLimit: 1000, // 临时提高警告阈值
     rollupOptions: {

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useStore } from './store';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -20,13 +20,13 @@ function App() {
   
   return (
     <ErrorBoundary>
-      <BrowserRouter basename="/fairy">
+      <HashRouter>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </ErrorBoundary>
   );
 }
