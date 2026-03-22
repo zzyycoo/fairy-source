@@ -118,6 +118,10 @@ function PIDInput({ oldPID, newPID, name, onOldPIDChange, onNewPIDChange, onName
   const [foundName, setFoundName] = useState('');
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   
+  // 使用 ref 存储回调函数，避免依赖变化导致的循环
+  const callbacksRef = useRef({ onNameChange, onOldPIDChange, onNewPIDChange });
+  callbacksRef.current = { onNameChange, onOldPIDChange, onNewPIDChange };
+  
   const handleSearch = useCallback(() => {
     if (!oldPID && !newPID) { setSearchStatus('idle'); return; }
     setSearchStatus('searching');
@@ -126,13 +130,13 @@ function PIDInput({ oldPID, newPID, name, onOldPIDChange, onNewPIDChange, onName
       searchPID(oldPID, newPID, (record, searchedBy) => {
         if (record) {
           setSearchStatus('found'); setFoundName(record.name);
-          onNameChange(record.name.toUpperCase());
-          if (searchedBy === 'old' && record.newPID && !newPID) onNewPIDChange(record.newPID);
-          else if (searchedBy === 'new' && record.oldPID && !oldPID) onOldPIDChange(record.oldPID);
+          callbacksRef.current.onNameChange(record.name.toUpperCase());
+          if (searchedBy === 'old' && record.newPID && !newPID) callbacksRef.current.onNewPIDChange(record.newPID);
+          else if (searchedBy === 'new' && record.oldPID && !oldPID) callbacksRef.current.onOldPIDChange(record.oldPID);
         } else { setSearchStatus('notfound'); setFoundName(''); }
       });
     }, 300);
-  }, [oldPID, newPID, searchPID, onNameChange, onOldPIDChange, onNewPIDChange]);
+  }, [oldPID, newPID, searchPID]);
   
   useEffect(() => { handleSearch(); return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }; }, [handleSearch]);
   
@@ -299,12 +303,14 @@ export default function Booking() {
   const [successMessage, setSuccessMessage] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   
+  // 只在showPreview变化时生成邮件，避免无限循环
   useEffect(() => {
-    if (booking.roomBooking && showPreview) {
+    if (showPreview) {
       const result = generateAllEmails();
       if (result) setLocalGeneratedEmail(result.email);
     }
-  }, [booking, generateAllEmails, showPreview]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPreview]);
   
   const handleSaveToSheets = async () => {
     const rb = booking.roomBooking;
