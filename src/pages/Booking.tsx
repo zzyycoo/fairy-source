@@ -107,50 +107,63 @@ function MobileActionBar({ onGenerate, onCopy, onSend, onBack, canCopy, canSend 
   );
 }
 
-// PID 输入组件
+// PID 输入组件 - 简化版，避免 useEffect 循环
 function PIDInput({ oldPID, newPID, name, onOldPIDChange, onNewPIDChange, onNameChange, disabled = false, label = 'Guest', required = false }: {
   oldPID: string; newPID: string; name: string;
   onOldPIDChange: (val: string) => void; onNewPIDChange: (val: string) => void; onNameChange: (val: string) => void;
   disabled?: boolean; label?: string; required?: boolean;
 }) {
   const { searchPID, pidDatabase } = usePIDSearch();
-  const [searchStatus, setSearchStatus] = useState<'idle' | 'searching' | 'found' | 'notfound'>('idle');
+  const [searchStatus, setSearchStatus] = useState<'idle' | 'found' | 'notfound'>('idle');
   const [foundName, setFoundName] = useState('');
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   
-  // 使用 ref 存储回调函数和搜索状态，避免依赖变化导致的循环
+  // 使用 ref 存储回调函数，避免依赖变化
   const callbacksRef = useRef({ onNameChange, onOldPIDChange, onNewPIDChange });
   callbacksRef.current = { onNameChange, onOldPIDChange, onNewPIDChange };
   
-  // 使用 ref 存储之前的 PID 值，避免重复搜索
+  // 使用 ref 存储之前的 PID 值
   const prevPIDRef = useRef({ oldPID: '', newPID: '' });
+  const isFirstRender = useRef(true);
   
-  const handleSearch = useCallback(() => {
+  // 简化搜索逻辑，只在值真正变化时执行
+  useEffect(() => {
+    // 跳过首次渲染
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      prevPIDRef.current = { oldPID, newPID };
+      return;
+    }
+    
     // 如果 PID 没有变化，不执行搜索
     if (prevPIDRef.current.oldPID === oldPID && prevPIDRef.current.newPID === newPID) return;
+    
+    // 更新 ref
     prevPIDRef.current = { oldPID, newPID };
     
-    if (!oldPID && !newPID) { setSearchStatus('idle'); return; }
-    setSearchStatus('searching');
+    if (!oldPID && !newPID) { 
+      setSearchStatus('idle'); 
+      return; 
+    }
+    
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       searchPID(oldPID, newPID, (record, searchedBy) => {
         if (record) {
-          setSearchStatus('found'); setFoundName(record.name);
+          setSearchStatus('found'); 
+          setFoundName(record.name);
           callbacksRef.current.onNameChange(record.name.toUpperCase());
           if (searchedBy === 'old' && record.newPID && !newPID) callbacksRef.current.onNewPIDChange(record.newPID);
           else if (searchedBy === 'new' && record.oldPID && !oldPID) callbacksRef.current.onOldPIDChange(record.oldPID);
-        } else { setSearchStatus('notfound'); setFoundName(''); }
+        } else { 
+          setSearchStatus('notfound'); 
+          setFoundName(''); 
+        }
       });
     }, 300);
-  }, [oldPID, newPID, searchPID]);
-  
-  // 只在 oldPID/newPID 实际变化时执行搜索
-  useEffect(() => { 
-    handleSearch(); 
-    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }; 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [oldPID, newPID]);
+    
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+  }, [oldPID, newPID]); // 只依赖 oldPID 和 newPID
   
   const getInputClass = (isNew: boolean, isRequired = false) => {
     const base = "w-full px-3 py-2 rounded-lg border text-sm transition-colors";
@@ -159,7 +172,6 @@ function PIDInput({ oldPID, newPID, name, onOldPIDChange, onNewPIDChange, onName
     if (isRequired && !pid) return base + " border-red-500 bg-red-50 dark:bg-red-900/20";
     if (pid && searchStatus === 'found') return base + " border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20";
     if (pid && searchStatus === 'notfound') return base + " border-amber-500 bg-amber-50 dark:bg-amber-900/20";
-    if (searchStatus === 'searching') return base + " border-blue-500";
     return base + " border-slate-300 dark:border-slate-600 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-800";
   };
   
@@ -212,6 +224,23 @@ function RoomBookingForm() {
   if (!rb) return null;
   
   const [dateRange, setDateRange] = useState({ start: rb.checkIn, end: rb.checkOut });
+  
+  // 使用 useCallback 缓存回调函数，避免每次渲染都创建新函数导致子组件重新渲染
+  const handleUpdateGuestOldPID = useCallback((guestId: number, val: string) => {
+    updateGuest(guestId, { oldPID: val });
+  }, [updateGuest]);
+  
+  const handleUpdateGuestNewPID = useCallback((guestId: number, val: string) => {
+    updateGuest(guestId, { newPID: val });
+  }, [updateGuest]);
+  
+  const handleUpdateGuestName = useCallback((guestId: number, val: string) => {
+    updateGuest(guestId, { name: val });
+  }, [updateGuest]);
+  
+  const handleUpdateSharer = useCallback((guestId: number, sharerId: number, data: Partial<{ oldPID: string; newPID: string; name: string }>) => {
+    updateSharer(guestId, sharerId, data);
+  }, [updateSharer]);
   
   const handleDateChange = (field: 'start' | 'end', value: string) => {
     const newRange = { ...dateRange, [field]: value };
@@ -268,7 +297,7 @@ function RoomBookingForm() {
                 <span className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2"><User size={16} /> Guest #{idx + 1}</span>
                 <button onClick={() => removeGuest(guest.id)} className="text-red-500 hover:text-red-600 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"><Trash2 size={16} /></button>
               </div>
-              <PIDInput oldPID={guest.oldPID} newPID={guest.newPID} name={guest.name} onOldPIDChange={(val) => updateGuest(guest.id, { oldPID: val })} onNewPIDChange={(val) => updateGuest(guest.id, { newPID: val })} onNameChange={(val) => updateGuest(guest.id, { name: val })} required />
+              <PIDInput oldPID={guest.oldPID} newPID={guest.newPID} name={guest.name} onOldPIDChange={(val) => handleUpdateGuestOldPID(guest.id, val)} onNewPIDChange={(val) => handleUpdateGuestNewPID(guest.id, val)} onNameChange={(val) => handleUpdateGuestName(guest.id, val)} required />
               
               <div className="mt-3">
                 <label className="block text-xs font-medium mb-1 text-slate-600 dark:text-slate-400">Room Type <span className="text-red-500">*</span></label>
@@ -293,7 +322,7 @@ function RoomBookingForm() {
                   <button onClick={() => addSharer(guest.id)} className="text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1 px-2 py-1 rounded hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors"><Plus size={14} /> Add Sharer</button>
                 </div>
                 <div className="space-y-3">
-                  {guest.sharers.map((sharer, sharerIdx) => <SharerInput key={sharer.id} sharer={sharer} index={sharerIdx} onUpdate={(data) => updateSharer(guest.id, sharer.id, data)} onRemove={() => removeSharer(guest.id, sharer.id)} />)}
+                  {guest.sharers.map((sharer, sharerIdx) => <SharerInput key={sharer.id} sharer={sharer} index={sharerIdx} onUpdate={(data) => handleUpdateSharer(guest.id, sharer.id, data)} onRemove={() => removeSharer(guest.id, sharer.id)} />)}
                   {guest.sharers.length === 0 && <div className="text-xs text-slate-400 dark:text-slate-500 italic py-2">No sharers added. Click "Add Sharer" to add room sharers.</div>}
                 </div>
               </div>
